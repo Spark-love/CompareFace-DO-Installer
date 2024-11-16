@@ -1,0 +1,92 @@
+name: compreface-app
+region: nyc3 # Choose a region close to your target audience
+services:
+  - name: compreface-postgres-db
+    image:
+      registry_type: DOCKER_HUB
+      repository: exadel/compreface-postgres-db
+      tag: 1.2.0
+    envs:
+      - key: POSTGRES_DB
+        value: frs
+      - key: POSTGRES_USER
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        value: postgres
+    ports:
+      - protocol: TCP
+        port: 5432
+
+  - name: compreface-core
+    image:
+      registry_type: DOCKER_HUB
+      repository: exadel/compreface-core
+      tag: 1.2.0
+    envs:
+      - key: POSTGRES_USERNAME
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        value: postgres
+      - key: POSTGRES_DB
+        value: frs
+      - key: POSTGRES_DOMAIN
+        value: compreface-postgres-db
+      - key: POSTGRES_PORT
+        value: "5432"
+      - key: SAVE_IMAGES_TO_DB
+        value: "true"
+      - key: COREFACE_API_JAVA_OPTIONS
+        value: "-Xmx8g"
+      - key: MAX_FILE_SIZE
+        value: 5MB
+      - key: MAX_REQUEST_SIZE
+        value: 10M
+      - key: MAX_DETECT_SIZE
+        value: 640
+    depends_on:
+      - compreface-postgres-db
+    ports:
+      - protocol: TCP
+        port: 3000
+
+  - name: compreface-admin
+    image:
+      registry_type: DOCKER_HUB
+      repository: exadel/compreface-admin
+      tag: 1.2.0
+    envs:
+      - key: COMPREFACE_ADMIN_JAVA_OPTIONS
+        value: "-Xmx8g"
+      - key: ENABLE_EMAIL_SERVER
+        value: "false"
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_USERNAME
+        value: ""
+      - key: EMAIL_FROM
+        value: ""
+      - key: EMAIL_PASSWORD
+        value: ""
+    depends_on:
+      - compreface-postgres-db
+    ports:
+      - protocol: TCP
+        port: 3001
+
+  - name: compreface-fe
+    image:
+      registry_type: DOCKER_HUB
+      repository: exadel/compreface-fe
+      tag: 1.2.0
+    depends_on:
+      - compreface-core
+      - compreface-admin
+    ports:
+      - protocol: TCP
+        port: 80
+
+envs:
+  - key: CONNECTION_TIMEOUT
+    value: "10000"
+  - key: READ_TIMEOUT
+    value: "60000"
