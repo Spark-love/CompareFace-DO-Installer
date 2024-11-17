@@ -110,3 +110,8 @@ COPY startup.sh /startup.sh
 RUN chmod +x /startup.sh
 
 CMD ["/usr/bin/supervisord"]
+
+################# Health Check ####################
+HEALTHCHECK --interval=10s --timeout=1s --start-period=0s --retries=0 \
+  CMD curl -f http://localhost:3000/healthcheck || exit 1
+
