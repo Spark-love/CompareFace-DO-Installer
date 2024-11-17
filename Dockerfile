@@ -1,3 +1,4 @@
+# Use the provided base image and version argument
 ARG BASE_IMAGE=exadel/compreface-core:latest
 ARG VERSION=latest
 
@@ -31,7 +32,8 @@ RUN apt-get update && apt-get install -y postgresql-13 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN rm /etc/postgresql/13/main/postgresql.conf
-COPY /postgresql.conf /etc/postgresql/13/main/postgresql.conf
+# Correct COPY paths for files in the root directory
+COPY postgresql.conf /etc/postgresql/13/main/postgresql.conf
 RUN mv /var/lib/postgresql/13/main $PGDATA
 
 COPY --from=postgres_db /docker-entrypoint-initdb.d/initdb.sql /initdb.sql
@@ -95,7 +97,7 @@ USER nginx
 
 COPY --from=fe /usr/share/nginx/html /usr/share/nginx/html
 COPY --from=fe /etc/nginx/ /etc/nginx/
-COPY /nginx.conf /etc/nginx/conf.d/nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/nginx.conf
 
 USER root
 ################# compreface-fe end ####################
@@ -103,8 +105,8 @@ USER root
 ################# supervisord ####################
 RUN apt-get update && apt-get install -y supervisor mc && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /var/log/supervisor
-COPY /supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY /Single-Docker-File/startup.sh /startup.sh
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY startup.sh /startup.sh
 RUN chmod +x /startup.sh
 
 CMD ["/usr/bin/supervisord"]
